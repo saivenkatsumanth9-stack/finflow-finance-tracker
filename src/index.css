@@ -1,0 +1,111 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Space Grotesk", sans-serif;
+  --font-sans: "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+  
+  --color-bg-app: #0D0F14;
+  --color-surface: #161A22;
+  --color-surface-2: #1E2330;
+  --color-accent: #6C63FF;
+  --color-accent-2: #00D4AA;
+  --color-danger: #FF5C5C;
+  --color-warning: #F5A623;
+  --color-text-primary: #F0F2F7;
+  --color-text-muted: #6B7280;
+  --color-border: #252B38;
+}
+
+/* Base resets */
+@layer base {
+  body {
+    background-color: var(--color-bg-app);
+    color: var(--color-text-primary);
+    font-family: var(--font-sans);
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+/* Custom design utilities */
+@layer utilities {
+  .neon-glow {
+    box-shadow: 0 0 16px rgba(108, 99, 255, 0.25);
+  }
+  
+  .glass-sidebar {
+    backdrop-filter: blur(20px);
+    background-color: rgba(22, 26, 34, 0.6);
+  }
+}
+
+/* Custom Keyframe Animations */
+@keyframes pulse-soft {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+
+.pulse-dot {
+  animation: pulse-soft 2s infinite ease-in-out;
+}
+
+@keyframes slide-in {
+  from {
+    transform: translateY(-20px) scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in {
+  animation: slide-in 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes scan-laser {
+  0% {
+    top: 0%;
+  }
+  50% {
+    top: 100%;
+  }
+  100% {
+    top: 0%;
+  }
+}
+
+.scanner-laser {
+  position: absolute;
+  height: 4px;
+  width: 100%;
+  background: linear-gradient(to right, transparent, var(--color-accent-2), transparent);
+  box-shadow: 0 0 12px var(--color-accent-2);
+  animation: scan-laser 2.5s infinite ease-in-out;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-bg-app);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
