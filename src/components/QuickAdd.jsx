@@ -11,6 +11,7 @@ export default function QuickAdd() {
     transactions 
   } = useFinance();
 
+  const [formType, setFormType] = useState('expense'); // 'expense' | 'income'
   const [amount, setAmount] = useState('');
   const [merchant, setMerchant] = useState('');
   const [category, setCategory] = useState('Food & dining');
@@ -48,13 +49,13 @@ export default function QuickAdd() {
 
     addTransaction({
       amount: Number(amount),
-      type: 'expense',
+      type: formType,
       category,
-      merchant: merchant || 'Miscellaneous Expense',
-      note: merchant || 'Quick added expense',
+      merchant: merchant || (formType === 'income' ? 'Income credit' : 'Miscellaneous Expense'),
+      note: merchant || (formType === 'income' ? 'Quick added credit' : 'Quick added expense'),
       date: new Date().toISOString(),
       accountId,
-      mood,
+      mood: formType === 'expense' ? mood : null,
       isRecurring: false
     });
 
@@ -108,7 +109,29 @@ export default function QuickAdd() {
 
       {/* Quick Add Form */}
       <div className="bg-surface p-5 rounded-2xl border border-border">
-        <h3 className="font-display font-bold text-sm text-text-primary mb-4">{profile.labelMode === 'credit-debit' ? 'Quick Add Debit' : 'Quick Add Expense'}</h3>
+        <h3 className="font-display font-bold text-sm text-text-primary mb-3">
+          {profile.labelMode === 'credit-debit' 
+            ? (formType === 'income' ? 'Quick Add Credit' : 'Quick Add Debit') 
+            : (formType === 'income' ? 'Quick Add Income' : 'Quick Add Expense')}
+        </h3>
+
+        {/* Tab Switcher */}
+        <div className="grid grid-cols-2 gap-2 bg-surface-2 p-1 rounded-xl border border-border select-none mb-4">
+          <button
+            type="button"
+            onClick={() => { setFormType('expense'); setCategory('Food & dining'); }}
+            className={`py-1.5 rounded-lg text-xs font-semibold transition-all ${formType === 'expense' ? 'bg-accent text-text-primary font-bold shadow' : 'text-text-muted hover:text-text-primary'}`}
+          >
+            {profile.labelMode === 'credit-debit' ? 'Debit (-)' : 'Expense'}
+          </button>
+          <button
+            type="button"
+            onClick={() => { setFormType('income'); setCategory('Salary'); }}
+            className={`py-1.5 rounded-lg text-xs font-semibold transition-all ${formType === 'income' ? 'bg-accent-2 text-bg-app font-bold shadow' : 'text-text-muted hover:text-text-primary'}`}
+          >
+            {profile.labelMode === 'credit-debit' ? 'Credit (+)' : 'Income'}
+          </button>
+        </div>
         
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Amount input */}
@@ -129,12 +152,14 @@ export default function QuickAdd() {
             </div>
           </div>
 
-          {/* Merchant / Description */}
+          {/* Merchant / Source */}
           <div>
-            <label className="text-text-muted text-[11px] font-semibold uppercase block mb-1">Merchant / Note</label>
+            <label className="text-text-muted text-[11px] font-semibold uppercase block mb-1">
+              {formType === 'income' ? 'Source / Payer' : 'Merchant / Note'}
+            </label>
             <input
               type="text"
-              placeholder="Zomato, Uber, DMart..."
+              placeholder={formType === 'income' ? 'Employer, parents, sale...' : 'Zomato, Uber, DMart...'}
               value={merchant}
               onChange={(e) => setMerchant(e.target.value)}
               className="w-full bg-surface-2 border border-border rounded-xl py-2.5 px-3.5 text-sm text-text-primary focus:outline-none focus:border-accent transition-colors placeholder:text-text-muted/65"
@@ -151,17 +176,27 @@ export default function QuickAdd() {
                 onChange={(e) => setCategory(e.target.value)}
                 className="w-full bg-surface-2 border border-border rounded-xl py-2.5 px-3 text-xs text-text-primary focus:outline-none focus:border-accent transition-colors"
               >
-                {budgets.map(b => (
-                  <option key={b.id} value={b.name}>
-                    {b.emoji} {b.name}
-                  </option>
-                ))}
+                {formType === 'expense' ? (
+                  budgets.map(b => (
+                    <option key={b.id} value={b.name}>
+                      {b.emoji} {b.name}
+                    </option>
+                  ))
+                ) : (
+                  <>
+                    <option value="Salary">💰 Salary</option>
+                    <option value="Investments">📈 Investments</option>
+                    <option value="Other">🏷️ Other</option>
+                  </>
+                )}
               </select>
             </div>
 
             <div>
               <label className="text-text-muted text-[11px] font-semibold uppercase block mb-1">
-                {profile.labelMode === 'credit-debit' ? 'Debited From' : 'Account'}
+                {profile.labelMode === 'credit-debit' 
+                  ? (formType === 'income' ? 'Credited To' : 'Debited From') 
+                  : 'Account'}
               </label>
               <select
                 value={accountId}
@@ -177,35 +212,45 @@ export default function QuickAdd() {
             </div>
           </div>
 
-          {/* Mood Selector */}
-          <div>
-            <label className="text-text-muted text-[11px] font-semibold uppercase block mb-1.5">Mood Tag</label>
-            <div className="grid grid-cols-6 gap-2">
-              {moods.map(m => (
-                <button
-                  key={m.id}
-                  type="button"
-                  onClick={() => setMood(m.id)}
-                  title={m.label}
-                  className={`py-2 rounded-lg text-lg flex items-center justify-center border transition-all duration-200
-                    ${mood === m.id 
-                      ? 'bg-accent/15 border-accent shadow-sm scale-110' 
-                      : 'bg-surface-2 border-border hover:bg-surface-2/80 hover:border-text-muted/30'
-                    }
-                  `}
-                >
-                  {m.emoji}
-                </button>
-              ))}
+          {/* Mood Selector (Only for expenses) */}
+          {formType === 'expense' && (
+            <div>
+              <label className="text-text-muted text-[11px] font-semibold uppercase block mb-1.5">Mood Tag</label>
+              <div className="grid grid-cols-6 gap-2">
+                {moods.map(m => (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => setMood(m.id)}
+                    title={m.label}
+                    className={`py-2 rounded-lg text-lg flex items-center justify-center border transition-all duration-200
+                      ${mood === m.id 
+                        ? 'bg-accent/15 border-accent shadow-sm scale-110' 
+                        : 'bg-surface-2 border-border hover:bg-surface-2/80 hover:border-text-muted/30'
+                      }
+                    `}
+                  >
+                    {m.emoji}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Submit */}
           <button
             type="submit"
-            className="w-full mt-2 bg-accent hover:bg-accent/90 text-text-primary py-2.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all duration-200 neon-glow"
+            className={`w-full mt-2 text-xs font-semibold py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all duration-200 neon-glow
+              ${formType === 'income' 
+                ? 'bg-accent-2 text-bg-app hover:bg-accent-2/95 shadow-md shadow-accent-2/10' 
+                : 'bg-accent text-text-primary hover:bg-accent/90'
+              }
+            `}
           >
-            <Plus className="w-4 h-4" /> {profile.labelMode === 'credit-debit' ? 'Add Debit' : 'Add Expense'}
+            <Plus className="w-4 h-4" />{' '}
+            {profile.labelMode === 'credit-debit' 
+              ? (formType === 'income' ? 'Add Credit' : 'Add Debit') 
+              : (formType === 'income' ? 'Add Income' : 'Add Expense')}
           </button>
         </form>
       </div>
